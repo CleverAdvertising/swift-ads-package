@@ -6,7 +6,7 @@ import UIKit
 import Combine
 
 @available(iOS 13.0, *)
-public class SwiftAdsPackage: WKWebView {
+@objc public class SwiftAdsPackage: WKWebView {
 
     private var finishedLoading: Bool = false;
     private var scriptId: Int
