@@ -29,7 +29,7 @@
     ```shell
     pod install
     ```
-## Usage
+## Usage with SwiftUI
 
 1. Create a file named AdsWebView.swift
 
@@ -59,4 +59,75 @@ struct AdsWebView: UIViewRepresentable {
 
 ```swift
     AdsWebView(scriptId: script id here).frame(width: 320, height: 50)
+```
+
+## Usage with UIKit
+
+1. Create a file named AdsWebViewController.swift
+
+2. Insert the following code
+
+```swift
+import UIKit
+import WebKit
+import swift_ads_package
+
+class AdsWebViewController: UIViewController {
+
+    var scriptId: Int
+    var webViewWidth: CGFloat
+    var webViewHeight: CGFloat
+
+    init(scriptId: Int, width: CGFloat, height: CGFloat) {
+        self.scriptId = scriptId
+        self.webViewWidth = width
+        self.webViewHeight = height
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let webView = SwiftAdsPackage(frame: .zero, configuration: WKWebViewConfiguration(), scriptId: scriptId)
+
+        // Adjusting the frame to the specified dimensions
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(webView)
+
+        // Configuring constraints for the WebView layout
+        NSLayoutConstraint.activate([
+            webView.widthAnchor.constraint(equalToConstant: webViewWidth),
+            webView.heightAnchor.constraint(equalToConstant: webViewHeight),
+            webView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            webView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
+}
+```
+
+3. Add the following code in your SceneDelegate project to display the ad
+
+```swift
+import UIKit
+
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+
+    var window: UIWindow?
+
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        guard let windowScene = (scene as? UIWindowScene) else { return }
+
+        // Manually initialize the UIViewController
+        let window = UIWindow(windowScene: windowScene)
+        let adsWebViewController = AdsWebViewController(scriptId: 123, width: 320, height: 50)
+        window.rootViewController = adsWebViewController
+        window.makeKeyAndVisible()
+
+        self.window = window
+    }
+}
 ```
