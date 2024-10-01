@@ -109,10 +109,9 @@ class AdsWebViewController: UIViewController {
 }
 ```
 
-3. Add the following code in your project to display the ad
+3. Add the following code in your SceneDelegate project to display the ad
 
 ```swift
-// SceneDelegate
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
@@ -124,38 +123,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         // Manually initialize the UIViewController
         let window = UIWindow(windowScene: windowScene)
-        window.frame = UIScreen.main.bounds
         let adsWebViewController = AdsWebViewController(scriptId: 123, width: 320, height: 50)
         window.rootViewController = adsWebViewController
-        window.frame = UIScreen.main.bounds
         window.makeKeyAndVisible()
 
         self.window = window
-    }
-}
-```
-
-or
-
-```swift
-// AppDelegate
-import UIKit
-
-@UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-
-    var window: UIWindow?
-
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-       
-        window = UIWindow(frame: UIScreen.main.bounds)
-        
-        // Creating AdsWebViewController manually
-        let adsWebViewController = AdsWebViewController(scriptId: 123, width: 320, height: 50)
-        window?.rootViewController = adsWebViewController
-        window?.makeKeyAndVisible()
-        
-        return true
     }
 }
 ```
