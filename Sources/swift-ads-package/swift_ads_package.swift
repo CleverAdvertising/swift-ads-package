@@ -54,8 +54,7 @@ import Combine
         self.uiDelegate = self
         
         // Configure WebView settings
-        //let scriptUrl = "https://script.cleverwebserver.com/v1/html/\(scriptId)?app=\(Bundle.main.bundleIdentifier ?? "")&sdk=swift"
-                let scriptUrl = "https://c441-149-102-233-221.ngrok-free.app/examples/test/e5e713385934d6060e699e041feae955"
+        let scriptUrl = "https://script.cleverwebserver.com/v1/html/\(scriptId)?app=\(Bundle.main.bundleIdentifier ?? "")&sdk=swift"
 
         let request = URLRequest(url: URL(string: scriptUrl)!)
         self.load(request)
@@ -64,8 +63,10 @@ import Combine
         self.configuration.preferences.javaScriptCanOpenWindowsAutomatically = true
         self.configuration.userContentController.add(self, name: "SwiftAdsMessageHandler")
         let js = """
+            let oldPostMessage = window.postMessage;
             window.postMessage = function(message) {
                 window.webkit.messageHandlers.SwiftAdsMessageHandler.postMessage(message);
+                oldPostMessage(message);
             };
             """
             let userScript = WKUserScript(source: js, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
@@ -136,8 +137,7 @@ extension SwiftAdsPackage: WKNavigationDelegate, WKUIDelegate {
     
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         self.finishedLoading = true;
-        //let scriptUrl = "https://script.cleverwebserver.com/v1/html/\(scriptId)?app=\(Bundle.main.bundleIdentifier ?? "")&sdk=swift"
-        let scriptUrl = "https://c441-149-102-233-221.ngrok-free.app/examples/test/e5e713385934d6060e699e041feae955"
+        let scriptUrl = "https://script.cleverwebserver.com/v1/html/\(scriptId)?app=\(Bundle.main.bundleIdentifier ?? "")&sdk=swift"
         self.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
             for cookie in cookies {
                 let key = cookie.name
