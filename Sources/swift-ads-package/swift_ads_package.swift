@@ -55,11 +55,23 @@ import Combine
         
         // Configure WebView settings
         let scriptUrl = "https://script.cleverwebserver.com/v1/html/\(scriptId)?app=\(Bundle.main.bundleIdentifier ?? "")&sdk=swift"
+
         let request = URLRequest(url: URL(string: scriptUrl)!)
         self.load(request)
         
         self.configuration.preferences.javaScriptEnabled = true
         self.configuration.preferences.javaScriptCanOpenWindowsAutomatically = true
+        self.configuration.userContentController.add(self, name: "SwiftAdsMessageHandler")
+        let js = """
+            let oldPostMessage = window.postMessage;
+            window.postMessage = function(message) {
+                window.webkit.messageHandlers.SwiftAdsMessageHandler.postMessage(message);
+                oldPostMessage(message);
+            };
+            """
+            let userScript = WKUserScript(source: js, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+            self.configuration.userContentController.addUserScript(userScript)
+
         let lastTrackerCookieKey = "clever-last-tracker-\(self.scriptId)"
         let lastTracker = self.counterStorage.getFromStorage(key: lastTrackerCookieKey);
         if let lastTracker = lastTracker {
@@ -160,4 +172,18 @@ extension SwiftAdsPackage {
         return !url.starts(with: "https://script.cleverwebserver.com")
     }
     
+}
+@available(iOS 13.0, *)
+extension SwiftAdsPackage: WKScriptMessageHandler {
+    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "SwiftAdsMessageHandler", let messageBody = message.body as? String {
+            let splittedMessage = messageBody.split(separator: "|")
+            if(splittedMessage.first != "clever-redirect") {
+                return
+            }
+            if let urlString = splittedMessage.last.map(String.init), let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            }
+        }
+    }
 }
