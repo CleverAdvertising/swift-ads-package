@@ -185,9 +185,11 @@ extension SwiftAdsPackage: WKScriptMessageHandler {
         if message.name == "SwiftAdsMessageHandler", let messageBody = message.body as? String {
             let splittedMessage = messageBody.split(separator: "|")
             if(splittedMessage.first == "clever-redirect") {
+                #if os(iOS)
                 if let urlString = splittedMessage.last.map(String.init), let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) {
                     UIApplication.shared.open(url, options: [:], completionHandler: nil)
                 }
+                #endif
             }
             if(splittedMessage.last == "callback") {   
                 self.onError?()
