@@ -2,7 +2,7 @@
 Pod::Spec.new do |spec|
 
   spec.name         = "swift-ads-package"
-  spec.version      = "1.0.10"
+  spec.version      = "1.0.11"
   spec.summary      = "A short description of swift-ads-package."
   spec.description  = "Library for displaying ads in Swift."
   spec.homepage     = "https://cleveradvertising.com"
