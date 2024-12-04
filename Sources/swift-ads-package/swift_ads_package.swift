@@ -12,10 +12,15 @@ import Combine
     private var scriptId: Int
     private var cancellables = Set<AnyCancellable>()
     private let counterStorage = CounterStorage()
+    private var onError: (() -> Void)?
+    private var alternative: (() -> Void)?
+ 
 
     // New initializer with the custom integer parameter
-    @objc public init(frame: CGRect, configuration: WKWebViewConfiguration, scriptId: Int) {
+    @objc public init(frame: CGRect, configuration: WKWebViewConfiguration, scriptId: Int, onError: (() -> Void)? = nil, alternative: (() -> Void)? = nil) {
         self.scriptId = scriptId
+        self.onError = onError
+        self.alternative = alternative
         super.init(frame: frame, configuration: configuration)
         setup()
     }
@@ -34,6 +39,7 @@ import Combine
     }
     private func setup() {
         print("Checking counter data")
+        print("chega interno:")
         counterStorage.getCounterData(scriptId: "\(scriptId)")
                     .receive(on: DispatchQueue.main)
                     .sink(receiveCompletion: { _ in }) { [weak self] result in
@@ -178,11 +184,16 @@ extension SwiftAdsPackage: WKScriptMessageHandler {
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "SwiftAdsMessageHandler", let messageBody = message.body as? String {
             let splittedMessage = messageBody.split(separator: "|")
-            if(splittedMessage.first != "clever-redirect") {
-                return
+            if(splittedMessage.first == "clever-redirect") {
+                if let urlString = splittedMessage.last.map(String.init), let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) {
+                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                }
             }
-            if let urlString = splittedMessage.last.map(String.init), let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) {
-                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            if(splittedMessage.last == "callback") {   
+                self.onError?()
+            }
+            if(splittedMessage.last == "alternative") {
+                self.alternative?()
             }
         }
     }

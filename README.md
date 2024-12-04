@@ -41,14 +41,28 @@ import SwiftUI
 import WebKit
 import swift_ads_package
 import Combine
+
 struct AdsWebView: UIViewRepresentable {
     let scriptId: Int
+    let onError: (() -> Void)?
+    let alternative: (() -> Void)?
 
     func makeUIView(context: Context) -> WKWebView {
-        let webView = SwiftAdsPackage(frame: .zero, configuration: WKWebViewConfiguration(), scriptId: scriptId)
+        let webView = SwiftAdsPackage(
+            frame: .zero,
+            configuration: WKWebViewConfiguration(),
+            scriptId: scriptId,
+            onError: {
+                onError?() 
+            },
+            alternative: {
+                alternative?() 
+            }
+        )
         
         return webView
     }
+    
     func updateUIView(_ uiView: WKWebView, context: Context) {
         // Handle updates if necessary
     }
@@ -58,7 +72,15 @@ struct AdsWebView: UIViewRepresentable {
 3. Add the following code anywhere in your project to display the ad
 
 ```swift
-    AdsWebView(scriptId: script id here).frame(width: 320, height: 50)
+    AdsWebView(
+        scriptId: script id here, 
+        onError: {
+            print("onError do something")
+        },
+        alternative: {
+            print("alternative do something")
+        }
+    ).frame(width: 320, height: 50)
 ```
 
 ## Usage with UIKit
@@ -77,11 +99,15 @@ class AdsWebViewController: UIViewController {
     var scriptId: Int
     var webViewWidth: CGFloat
     var webViewHeight: CGFloat
+    var onError: (() -> Void)?
+    var alternative: (() -> Void)?
 
-    init(scriptId: Int, width: CGFloat, height: CGFloat) {
+    init(scriptId: Int, width: CGFloat, height: CGFloat, onError: (() -> Void)?, alternative: (() -> Void)?) {
         self.scriptId = scriptId
         self.webViewWidth = width
         self.webViewHeight = height
+        self.onError = onError
+        self.alternative = alternative
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -92,7 +118,19 @@ class AdsWebViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let webView = SwiftAdsPackage(frame: .zero, configuration: WKWebViewConfiguration(), scriptId: scriptId)
+        let webView = SwiftAdsPackage(
+            frame: .zero, 
+            configuration: WKWebViewConfiguration(), 
+            scriptId: scriptId, 
+            onError: { 
+                [weak self] in
+                self?.onError?()
+            }, 
+            alternative: { 
+                [weak self] in
+                self?.alternative?()
+            }
+        )
 
         // Adjusting the frame to the specified dimensions
         webView.translatesAutoresizingMaskIntoConstraints = false
@@ -107,6 +145,7 @@ class AdsWebViewController: UIViewController {
         ])
     }
 }
+
 ```
 
 3. Add the following code in your SceneDelegate project to display the ad
@@ -123,11 +162,21 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         // Manually initialize the UIViewController
         let window = UIWindow(windowScene: windowScene)
-        let adsWebViewController = AdsWebViewController(scriptId: 123, width: 320, height: 50)
+        let adsWebViewController = AdsWebViewController(
+            scriptId: script id here,    
+            width: 320, 
+            height: 350, 
+            onError: {
+                print("onError do something")
+            },
+            alternative: {
+                print("alternative do something")
+            })
         window.rootViewController = adsWebViewController
         window.makeKeyAndVisible()
 
         self.window = window
     }
 }
+
 ```
