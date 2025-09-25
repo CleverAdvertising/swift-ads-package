@@ -79,7 +79,7 @@ class CounterStorage {
         return calendar.date(byAdding: .minute, value: Int(hours * 60), to: date)!
     }
 
-    private func getConfiguredExpiration(scriptId: String) -> AnyPublisher<Double?, Never> {
+     private func getConfiguredExpiration(scriptId: String) -> AnyPublisher<Double?, Never> {
         return Future { promise in
             DispatchQueue.global(qos: .background).async {
                 guard let url = URL(string: "https://scripts-data.cleverwebserver.com/\(scriptId).json") else {
@@ -94,10 +94,25 @@ class CounterStorage {
                         return
                     }
 
-                    guard let data = data,
-                          let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                          let group = json["group"] as? [String: Any],
-                          let expireMobile = group["ExpireMobile"] as? Double, expireMobile > 0 else {
+                    guard var data = data else {
+                        promise(.success(nil))
+                        return
+                    }
+
+                    
+                    if let decodedData = Data(base64Encoded: data),
+                    let decodedString = String(data: decodedData, encoding: .utf8),
+                    decodedString.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("{") ||
+                    decodedString.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("[") {
+                        data = decodedData
+                    }
+
+                    guard
+                        let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                        let group = json["group"] as? [String: Any],
+                        let expireMobile = group["ExpireMobile"] as? Double,
+                        expireMobile > 0
+                    else {
                         promise(.success(nil))
                         return
                     }
